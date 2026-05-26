@@ -14,7 +14,7 @@ const groupsData = {
     L: ["🏴󠁧󠁢󠁥󠁮󠁧󠁿 England", "🇭🇷 Croatia", "🇬🇭 Ghana", "🇵🇦 Panama"]
 };
 
-// বর্তমান টিম পারফরম্যান্স, র‍্যাংক এবং প্লেয়ার কোয়ালিটি মিলিয়ে পাওয়ার রেটিং (১০০ এর মধ্যে)
+// পাওয়ার রেটিং (১০০ এর মধ্যে) - এআই এই ডাটা দিয়ে প্রেডিকশন হিসাব করবে
 const teamPowerRatings = {
     "🇲🇽 Mexico": 78, "🇿🇦 South Africa": 65, "🇰🇷 South Korea": 72, "🇨🇿 Czechia": 70,
     "🇨🇦 Canada": 75, "🇧🇦 Bosnia and Herzegovina": 68, "🇶🇦 Qatar": 60, "🇨🇭 Switzerland": 76,
@@ -46,12 +46,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("generate-ko-btn").addEventListener("click", processGroupStage);
     document.getElementById("reset-btn").addEventListener("click", resetAll);
-    document.getElementById("ai-sim-btn").addEventListener("click", runFullAISimulation);
+    
+    const aiBtn = document.getElementById("ai-sim-btn");
+    if(aiBtn) aiBtn.addEventListener("click", runFullAISimulation);
 });
 
 // মোড অনুযায়ী গ্রুপ স্টেজ রেন্ডার করার ফাংশন
 function renderGroupStage() {
     const container = document.getElementById("groups-container");
+    if(!container) return;
     container.innerHTML = "";
     
     Object.keys(groupsData).forEach(groupName => {
@@ -187,8 +190,8 @@ function processGroupStage() {
         { id: 3, matchNo: 76, t1: groupResults['C'][1], t2: groupResults['F'][2] },
         { id: 4, matchNo: 77, t1: groupResults['I'][1], t2: get3rd(1) },
         { id: 5, matchNo: 78, t1: groupResults['E'][2], t2: groupResults['I'][2] },
-        { id: 6, matchNo: 79, t1: groupResults['A'][1], t2: get3rd(2) },
         { id: 7, matchNo: 80, t1: groupResults['L'][1], t2: get3rd(3) },
+        { id: 6, matchNo: 79, t1: groupResults['A'][1], t2: get3rd(2) },
         { id: 8, matchNo: 81, t1: groupResults['D'][1], t2: get3rd(4) },
         { id: 9, matchNo: 82, t1: groupResults['G'][1], t2: get3rd(5) },
         { id: 10, matchNo: 83, t1: groupResults['K'][2], t2: groupResults['L'][2] },
@@ -206,7 +209,7 @@ function processGroupStage() {
     setupBlankRounds();
 
     const koSection = document.getElementById("knockout-section");
-    koSection.classList.remove("id-disabled");
+    if(koSection) koSection.classList.remove("id-disabled");
     renderBracket();
 }
 
@@ -224,11 +227,14 @@ function renderBracket() {
     renderKoRound(knockoutState.qf, "qf-slots", "qf");
     renderKoRound(knockoutState.sf, "sf-slots", "sf");
     renderKoRound(knockoutState.f, "f-slots", "f");
-    document.getElementById("champion-name").innerText = knockoutState.champion ? knockoutState.champion : "???";
+    
+    const champField = document.getElementById("champion-name");
+    if(champField) champField.innerText = knockoutState.champion ? knockoutState.champion : "???";
 }
 
 function renderKoRound(matches, containerId, roundKey) {
     const container = document.getElementById(containerId);
+    if(!container) return;
     container.innerHTML = "";
 
     matches.forEach(match => {
@@ -273,8 +279,8 @@ function advanceTeamScore(currentRound, matchId, val, teamType) {
     if (teamType === 't1') match.s1 = val; else match.s2 = val;
 
     if (match.s1 !== "" && match.s2 !== "" && match.s1 !== undefined && match.s2 !== undefined) {
-        let g1 = parseInt(match.s1);
-        let g2 = parseInt(match.s2);
+        let g1 = parseInt(match.s1) || 0;
+        let g2 = parseInt(match.s2) || 0;
         let winner = null;
 
         if (g1 > g2) winner = match.t1;
@@ -287,13 +293,13 @@ function advanceTeamScore(currentRound, matchId, val, teamType) {
     }
 }
 
-// AI কোর লজিক ইঞ্জিন (পাওয়ার ডিফারেন্স ও লাক ফ্যাক্টর সমন্বয়ে সম্ভাব্য গোল প্রেডিকশন)
+// AI কোর লজিক ইঞ্জিন
 function calculateAIScore(team1, team2) {
     const p1 = teamPowerRatings[team1] || 70;
     const p2 = teamPowerRatings[team2] || 70;
     const diff = p1 - p2;
     
-    let g1 = Math.floor(Math.random() * 3); // বেস গোল ০-২
+    let g1 = Math.floor(Math.random() * 3); 
     let g2 = Math.floor(Math.random() * 3);
     
     if (diff > 15) g1 += Math.floor(Math.random() * 3) + 1;
@@ -304,50 +310,51 @@ function calculateAIScore(team1, team2) {
     return { g1, g2 };
 }
 
-// এক ক্লিকে সম্পূর্ণ টুর্নামেন্ট জেনারেট করার মাস্টার ফাংশন (Fixed & Optimized)
+// এক ক্লিকে সম্পূর্ণ টুর্নামেন্ট জেনারেট করার মাস্টার ফাংশন (Bulletproof & Safe)
 function runFullAISimulation() {
     currentMode = "score"; 
     
-    // রেডিও বাটন ইন্টারফেস চেকড করা
     const scoreRadio = document.getElementById("mode-score");
     if(scoreRadio) scoreRadio.checked = true;
     
-    // ১. গ্রুপ স্টেজ নতুন করে ফ্রেশ রেন্ডার করা
     renderGroupStage();
 
-    // ২. গ্রুপ স্টেজ ম্যাচগুলো অটো-ফিলিং
     const matchRows = document.querySelectorAll(".group-match-row");
     matchRows.forEach(row => {
         const t1 = row.getAttribute("data-t1");
         const t2 = row.getAttribute("data-t2");
         const { g1, g2 } = calculateAIScore(t1, t2);
-        row.querySelector(".score-t1").value = g1;
-        row.querySelector(".score-t2").value = g2;
+        
+        const inp1 = row.querySelector(".score-t1");
+        const inp2 = row.querySelector(".score-t2");
+        if(inp1 && inp2) {
+            inp1.value = g1;
+            inp2.value = g2;
+        }
     });
 
-    // ৩. নকআউট স্লট তৈরি ও সেকশন আনলক করা
     processGroupStage(); 
 
-    // ৪. নকআউটের সবগুলো রাউন্ড ক্রমান্বয়ে অটো-সিমুলেট করা
     const rounds = ["r32", "r16", "qf", "sf", "f"];
     rounds.forEach(roundKey => {
-        knockoutState[roundKey].forEach(match => {
-            if (match.t1 && match.t2) {
-                let { g1, g2 } = calculateAIScore(match.t1, match.t2);
-                if (g1 === g2) { 
-                    // নকআউটে ড্র হলে যেকোনো এক পক্ষকে র্যান্ডমলি ১ গোল বাড়িয়ে উইনার করা
-                    Math.random() > 0.5 ? g1++ : g2++;
+        if(knockoutState[roundKey]) {
+            knockoutState[roundKey].forEach(match => {
+                if (match.t1 && match.t2) {
+                    let { g1, g2 } = calculateAIScore(match.t1, match.t2);
+                    if (g1 === g2) { 
+                        Math.random() > 0.5 ? g1++ : g2++;
+                    }
+                    match.s1 = g1;
+                    match.s2 = g2;
+                    let winner = g1 > g2 ? match.t1 : match.t2;
+                    pushToNextRound(roundKey, match.id, winner);
                 }
-                match.s1 = g1;
-                match.s2 = g2;
-                let winner = g1 > g2 ? match.t1 : match.t2;
-                pushToNextRound(roundKey, match.id, winner);
-            }
-        });
+            });
+        }
     });
     
-    // ইন্টারফেস রেন্ডার শেষে স্মুথ স্ক্রল করে নকআউট ব্র্যাকেটে নিয়ে যাওয়া
-    document.getElementById("knockout-section").scrollIntoView({ behavior: 'smooth' });
+    const koSec = document.getElementById("knockout-section");
+    if(koSec) koSec.scrollIntoView({ behavior: 'smooth' });
 }
 
 function pushToNextRound(currentRound, matchId, selectedTeam) {
@@ -368,7 +375,7 @@ function pushToNextRound(currentRound, matchId, selectedTeam) {
             12: { nextId: 7, slot: 't1' }, 14: { nextId: 7, slot: 't2' }  
         };
         let target = r16Map[matchId];
-        knockoutState.r16[target.nextId][target.slot] = selectedTeam;
+        if(target) knockoutState.r16[target.nextId][target.slot] = selectedTeam;
 
     } else if (currentRound === "r16") {
         let nextMatchId = Math.floor(matchId / 2);
@@ -403,7 +410,8 @@ function resetDownstream(teamName) {
 
 function resetAll() {
     knockoutState = { r32: [], r16: [], qf: [], sf: [], f: [], champion: null };
-    document.getElementById("knockout-section").classList.add("id-disabled");
+    const koSection = document.getElementById("knockout-section");
+    if(koSection) koSection.classList.add("id-disabled");
     renderGroupStage();
     renderBracket();
 }
