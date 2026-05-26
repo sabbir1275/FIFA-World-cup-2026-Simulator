@@ -208,7 +208,6 @@ function processGroupStage() {
     const koSection = document.getElementById("knockout-section");
     koSection.classList.remove("id-disabled");
     renderBracket();
-    koSection.scrollIntoView({ behavior: 'smooth' });
 }
 
 function setupBlankRounds() {
@@ -305,13 +304,18 @@ function calculateAIScore(team1, team2) {
     return { g1, g2 };
 }
 
-// এক ক্লিকে সম্পূর্ণ টুর্নামেন্ট জেনারেট করার মাস্টার ফাংশন
+// এক ক্লিকে সম্পূর্ণ টুর্নামেন্ট জেনারেট করার মাস্টার ফাংশন (Fixed & Optimized)
 function runFullAISimulation() {
     currentMode = "score"; 
-    document.getElementById("mode-score").checked = true;
+    
+    // রেডিও বাটন ইন্টারফেস চেকড করা
+    const scoreRadio = document.getElementById("mode-score");
+    if(scoreRadio) scoreRadio.checked = true;
+    
+    // ১. গ্রুপ স্টেজ নতুন করে ফ্রেশ রেন্ডার করা
     renderGroupStage();
 
-    // ১. গ্রুপ স্টেজ অটো-ফিলিং
+    // ২. গ্রুপ স্টেজ ম্যাচগুলো অটো-ফিলিং
     const matchRows = document.querySelectorAll(".group-match-row");
     matchRows.forEach(row => {
         const t1 = row.getAttribute("data-t1");
@@ -321,9 +325,10 @@ function runFullAISimulation() {
         row.querySelector(".score-t2").value = g2;
     });
 
-    processGroupStage(); // নকআউট স্লট তৈরি
+    // ৩. নকআউট স্লট তৈরি ও সেকশন আনলক করা
+    processGroupStage(); 
 
-    // ২. নকআউটের সবগুলো রাউন্ড ক্রমান্বয়ে অটো-সিমুলেট করা
+    // ৪. নকআউটের সবগুলো রাউন্ড ক্রমান্বয়ে অটো-সিমুলেট করা
     const rounds = ["r32", "r16", "qf", "sf", "f"];
     rounds.forEach(roundKey => {
         knockoutState[roundKey].forEach(match => {
@@ -340,6 +345,9 @@ function runFullAISimulation() {
             }
         });
     });
+    
+    // ইন্টারফেস রেন্ডার শেষে স্মুথ স্ক্রল করে নকআউট ব্র্যাকেটে নিয়ে যাওয়া
+    document.getElementById("knockout-section").scrollIntoView({ behavior: 'smooth' });
 }
 
 function pushToNextRound(currentRound, matchId, selectedTeam) {
