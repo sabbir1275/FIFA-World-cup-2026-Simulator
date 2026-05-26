@@ -9,75 +9,49 @@
 <body>
 
     <header>
-        <h1>🏆 FIFA World Cup 2026 Simulator</h1>
-        <p>Predict the ultimate world champion step by step</p>
+        <h1>🏆 FIFA WORLD CUP 2026 SIMULATOR 🏆</h1>
+        <p>Choose your simulation mode, predict the matches, and crown the Champion!</p>
+        
+        <div class="mode-selector">
+            <label class="mode-label">
+                <input type="radio" name="simMode" id="mode-direct" value="direct" checked> 🏎️ Direct Rank Mode
+            </label>
+            <label class="mode-label">
+                <input type="radio" name="simMode" id="mode-score" value="score"> ⚽ Match Score Mode
+            </label>
+        </div>
+
+        <div class="button-group">
+            <button id="reset-btn">Reset Simulation</button>
+            <button id="ai-sim-btn">🤖 AI Auto-Simulation</button>
+        </div>
     </header>
 
-    <main class="container">
-        <!-- মোড সিলেকশন এবং কন্ট্রোল বাটন সমূহ -->
-        <section class="controls-section">
-            <div class="mode-selector">
-                <label class="mode-label">
-                    <input type="radio" name="simMode" id="mode-direct" value="direct" checked> 1st/2nd/3rd Direct Rank
-                </label>
-                <label class="mode-label">
-                    <input type="radio" name="simMode" id="mode-score" value="score"> ⚽ Match Score Mode
-                </label>
-            </div>
-
-            <div class="action-buttons">
-                <button id="generate-ko-btn" class="btn btn-primary">Generate Knockouts ➔</button>
-                <button id="reset-btn" class="btn btn-danger">Reset All</button>
+    <main class="main-wrapper">
+        <section class="stage-section">
+            <h2>Step 1: Group Stage (48 Teams)</h2>
+            <div class="groups-grid" id="groups-container"></div>
+            <div class="center-btn-container">
+                <button id="generate-ko-btn">Simulate Knockouts</button>
             </div>
         </section>
 
-        <!-- গ্রুপ স্টেজ সেকশন -->
-        <section id="group-stage-section">
-            <h2>📋 Group Stage (48 Teams in 12 Groups)</h2>
-            <div id="groups-container" class="groups-grid">
-                <!-- জাভাস্ক্রিপ্ট এর মাধ্যমে গ্রুপগুলো এখানে লোড হবে -->
-            </div>
-        </section>
+        <hr>
 
-        <!-- নকআউট ব্র্যাকেট সেকশন -->
-        <section id="knockout-section" class="id-disabled">
-            <hr class="section-divider">
-            <h2>Tournament Bracket (Knockout Stage)</h2>
-            
-            <div class="champion-display">
-                <h3>👑 WORLD CHAMPION 👑</h3>
-                <div id="champion-name" class="champion-crown">???</div>
-            </div>
-
-            <div class="bracket-container">
-                <!-- Round of 32 -->
-                <div class="round-column">
-                    <div class="round-header">Round of 32</div>
-                    <div id="r32-slots" class="match-list"></div>
-                </div>
-
-                <!-- Round of 16 -->
-                <div class="round-column">
-                    <div class="round-header">Round of 16</div>
-                    <div id="r16-slots" class="match-list"></div>
-                </div>
-
-                <!-- Quarter Finals -->
-                <div class="round-column">
-                    <div class="round-header">Quarter Finals</div>
-                    <div id="qf-slots" class="match-list"></div>
-                </div>
-
-                <!-- Semi Finals -->
-                <div class="round-column">
-                    <div class="round-header">Semi Finals</div>
-                    <div id="sf-slots" class="match-list"></div>
-                </div>
-
-                <!-- Final -->
-                <div class="round-column">
-                    <div class="round-header">Final</div>
-                    <div id="f-slots" class="match-list"></div>
+        <section class="stage-section id-disabled" id="knockout-section">
+            <h2>Step 2: Knockout Stage Bracket</h2>
+            <div class="tournament-bracket">
+                <div class="round-col"><h3>Round of 32</h3><div class="matches-slots" id="r32-slots"></div></div>
+                <div class="round-col"><h3>Round of 16</h3><div class="matches-slots" id="r16-slots"></div></div>
+                <div class="round-col"><h3>Quarter-Finals</h3><div class="matches-slots" id="qf-slots"></div></div>
+                <div class="round-col"><h3>Semi-Finals</h3><div class="matches-slots" id="sf-slots"></div></div>
+                <div class="round-col"><h3>Final</h3><div class="matches-slots" id="f-slots"></div></div>
+                <div class="round-col">
+                    <h3>Champion</h3>
+                    <div class="champion-box">
+                        <div class="crown">👑</div>
+                        <div id="champion-name">???</div>
+                    </div>
                 </div>
             </div>
         </section>
