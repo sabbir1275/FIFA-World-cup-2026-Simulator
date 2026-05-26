@@ -1,344 +1,315 @@
-// Official FIFA World Cup 2026 Groups (48 Teams)
-const groupsData = {
-    A: ["🇲🇽 Mexico", "🇿🇦 South Africa", "🇰🇷 South Korea", "🇨🇿 Czechia"],
-    B: ["🇨🇦 Canada", "🇧🇦 Bosnia and Herzegovina", "🇶🇦 Qatar", "🇨🇭 Switzerland"],
-    C: ["🇧🇷 Brazil", "🇲🇦 Morocco", "🇭🇹 Haiti", "🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland"],
-    D: ["🇺🇸 United States", "🇵🇾 Paraguay", "🇦🇺 Australia", "🇹🇷 Turkey"],
-    E: ["🇩🇪 Germany", "🇨🇼 Curaçao", "🇨🇮 Ivory Coast", "🇪🇨 Ecuador"],
-    F: ["🇳🇱 Netherlands", "🇯🇵 Japan", "🇸🇪 Sweden", "🇹🇳 Tunisia"],
-    G: ["🇧🇪 Belgium", "🇪🇬 Egypt", "🇮🇷 Iran", "🇳🇿 New Zealand"],
-    H: ["🇪🇸 Spain", "🇨🇻 Cape Verde", "🇸🇦 Saudi Arabia", "🇺🇾 Uruguay"],
-    I: ["🇫🇷 France", "🇸🇳 Senegal", "🇮🇶 Iraq", "🇳🇴 Norway"],
-    J: ["🇦🇷 Argentina", "🇩🇿 Algeria", "🇦🇹 Austria", "🇯🇴 Jordan"],
-    K: ["🇵🇹 Portugal", "🇨🇴 Colombia", "🇺🇿 Uzbekistan", "🇨🇩 DR Congo"],
-    L: ["🏴󠁧󠁢󠁥󠁮󠁧󠁿 England", "🇭🇷 Croatia", "🇬🇭 Ghana", "🇵🇦 Panama"]
-};
+:root {
+    --bg-color: #0b1329;
+    --card-bg: #1c2541;
+    --card-hover: #3a506b;
+    --accent-color: #48cae4;
+    --winner-color: #ffb703;
+    --text-color: #f8fafc;
+    --border-color: #1e293b;
+    --ai-color: #7209b7;
+    --ai-hover: #560bad;
+}
 
-let knockoutState = { r32: [], r16: [], qf: [], sf: [], f: [], champion: null };
-let currentMode = "direct"; // 'direct' or 'score'
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    font-family: 'Segoe UI', system-ui, sans-serif; 
+}
 
-document.addEventListener("DOMContentLoaded", () => {
-    renderGroupStage();
+body { 
+    background-color: var(--bg-color); 
+    color: var(--text-color); 
+    padding: 20px; 
+}
+
+header { 
+    text-align: center; 
+    margin-bottom: 30px; 
+}
+
+header h1 { 
+    color: var(--winner-color); 
+    font-size: 2.2rem; 
+    margin-bottom: 8px; 
+}
+
+/* Mode Switcher Stylings */
+.mode-selector { 
+    margin: 15px 0; 
+    display: flex; 
+    justify-content: center; 
+    gap: 20px; 
+}
+
+.mode-label { 
+    background: var(--card-bg); 
+    padding: 10px 20px; 
+    border-radius: 20px; 
+    cursor: pointer; 
+    border: 1px solid var(--border-color); 
+    font-weight: bold; 
+    transition: 0.2s; 
+}
+
+.mode-label:hover { 
+    border-color: var(--accent-color); 
+}
+
+.mode-label input { 
+    margin-right: 8px; 
+}
+
+.button-group {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+#reset-btn, #generate-ko-btn, #ai-sim-btn {
+    color: white; 
+    border: none; 
+    padding: 12px 24px;
+    font-size: 1rem; 
+    font-weight: bold; 
+    border-radius: 6px; 
+    cursor: pointer; 
+    transition: 0.2s;
+}
+
+#reset-btn { background-color: #e63946; }
+#reset-btn:hover { background-color: #c1121f; }
+
+#ai-sim-btn { background-color: var(--ai-color); }
+#ai-sim-btn:hover { background-color: var(--ai-hover); }
+
+#generate-ko-btn { background-color: #00b4d8; margin-top: 20px; }
+#generate-ko-btn:hover { background-color: #0077b6; }
+
+.main-wrapper { 
+    max-width: 1600px; 
+    margin: 0 auto; 
+}
+
+.stage-section h2 { 
+    text-align: center; 
+    color: #94a3b8; 
+    margin-bottom: 20px; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+}
+
+hr { 
+    border: 0; 
+    height: 1px; 
+    background: var(--border-color); 
+    margin: 40px 0; 
+}
+
+/* Groups Layout */
+.groups-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); 
+    gap: 20px; 
+}
+
+.group-card { 
+    background: var(--card-bg); 
+    border: 1px solid var(--border-color); 
+    border-radius: 8px; 
+    padding: 15px; 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
+}
+
+.group-card h3 { 
+    border-bottom: 2px solid var(--accent-color); 
+    padding-bottom: 5px; 
+    margin-bottom: 12px; 
+    color: #caf0f8; 
+    text-align: center; 
+}
+
+/* Team Rows & Score Inputs */
+.group-team-row, .group-match-row { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 10px; 
+    font-size: 0.95rem; 
+}
+
+.group-team-row select { 
+    background: #0b1329; 
+    color: white; 
+    border: 1px solid var(--accent-color); 
+    padding: 5px; 
+    border-radius: 4px; 
+    cursor: pointer; 
+}
+
+.score-inputs { 
+    display: flex; 
+    align-items: center; 
+    gap: 5px; 
+}
+
+.score-input { 
+    width: 35px; 
+    text-align: center; 
+    background: #0b1329; 
+    color: white; 
+    border: 1px solid var(--border-color); 
+    border-radius: 4px; 
+    padding: 3px; 
+    font-weight: bold; 
+}
+
+.match-vs { 
+    font-size: 0.8rem; 
+    color: #64748b; 
+    font-weight: bold; 
+}
+
+/* Knockout Layout */
+.stage-section.id-disabled { 
+    opacity: 0.15; 
+    pointer-events: none; 
+}
+
+.tournament-bracket { 
+    display: grid; 
+    grid-template-columns: repeat(6, 1fr); 
+    gap: 15px; 
+    overflow-x: auto; 
+    align-items: center; 
+    padding: 20px 0; 
+}
+
+.round-col { 
+    display: flex; 
+    flex-direction: column; 
+    height: 100%; 
+    min-height: 850px; 
+}
+
+.round-col h3 { 
+    text-align: center; 
+    font-size: 1rem; 
+    color: #94a3b8; 
+    margin-bottom: 15px; 
+}
+
+.matches-slots { 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: space-around; 
+    height: 100%; 
+    gap: 8px; 
+}
+
+/* Match Box & Score Prediction inside Knockouts */
+.match-box { 
+    background: var(--card-bg); 
+    border: 1px solid var(--border-color); 
+    border-radius: 6px; 
+    overflow: hidden; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+}
+
+.ko-team { 
+    padding: 12px; 
+    cursor: pointer; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    transition: 0.2s; 
+    font-size: 0.85rem; 
+}
+
+.ko-team:first-child { 
+    border-bottom: 1px solid var(--border-color); 
+}
+
+.ko-team:hover { 
+    background: var(--card-hover); 
+}
+
+.ko-team.advanced { 
+    background: rgba(72, 202, 228, 0.2) !important; 
+    color: var(--accent-color) !important; 
+    font-weight: bold; 
+    border-left: 4px solid var(--accent-color);
+}
+
+.ko-team.eliminated { 
+    opacity: 0.3 !important; 
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.ko-team .score-input {
+    width: 40px;
+    text-align: center;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 3px;
+    font-weight: bold;
+}
+
+.ko-team .score-input:focus {
+    border-color: var(--accent-color);
+    outline: none;
+}
+
+/* Champion Box */
+.champion-box { 
+    background: linear-gradient(135deg, #1c2541, #0b1329); 
+    border: 3px solid var(--winner-color); 
+    border-radius: 8px; 
+    padding: 25px; 
+    text-align: center; 
+}
+
+.crown { 
+    font-size: 2.5rem; 
+    margin-bottom: 5px; 
+    animation: float 3s ease-in-out infinite; 
+}
+
+#champion-name { 
+    font-size: 1.1rem; 
+    font-weight: bold; 
+    color: var(--winner-color); 
+}
+
+.center-btn-container { 
+    text-align: center; 
+    margin-top: 25px; 
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+/* ====== MOBILE RESPONSIVE ====== */
+@media (max-width: 768px) {
+    body { padding: 10px; }
+    header h1 { font-size: 1.6rem; }
+    .button-group { flex-direction: column; gap: 8px; width: 100%; max-width: 300px; margin: 15px auto 0; }
+    .groups-grid { grid-template-columns: 1fr; gap: 15px; }
     
-    // মোড সুইচার হ্যান্ডলার
-    document.querySelectorAll('input[name="simMode"]').forEach(radio => {
-        radio.addEventListener("change", (e) => {
-            currentMode = e.target.value;
-            resetAll();
-        });
-    });
-
-    document.getElementById("generate-ko-btn").addEventListener("click", processGroupStage);
-    document.getElementById("reset-btn").addEventListener("click", resetAll);
-});
-
-// গ্রুপ স্টেজ ইন্টারফেস রেন্ডার করা
-function renderGroupStage() {
-    const container = document.getElementById("groups-container");
-    if (!container) return;
-    container.innerHTML = "";
+    .tournament-bracket {
+        display: flex; 
+        gap: 20px;
+        overflow-x: scroll; 
+        padding: 10px;
+        -webkit-overflow-scrolling: touch;
+    }
     
-    Object.keys(groupsData).forEach(groupName => {
-        const groupCard = document.createElement("div");
-        groupCard.className = "group-card";
-        groupCard.innerHTML = `<h3>Group ${groupName}</h3>`;
-        
-        if (currentMode === "direct") {
-            // Direct Rank Mode UI
-            groupsData[groupName].forEach(team => {
-                const row = document.createElement("div");
-                row.className = "group-team-row";
-                row.innerHTML = `
-                    <span>${team}</span>
-                    <select class="group-select" data-group="${groupName}" data-team="${team}">
-                        <option value="">-- Rank --</option>
-                        <option value="1">1st Place</option>
-                        <option value="2">2nd Place</option>
-                        <option value="3">3rd Place</option>
-                        <option value="4">4th Place</option>
-                    </select>
-                `;
-                groupCard.appendChild(row);
-            });
-        } else {
-            // Match Score Mode UI (6 Head-to-Head Matches per Group)
-            const teams = groupsData[groupName];
-            const fixtures = [
-                [teams[0], teams[1]], [teams[2], teams[3]], 
-                [teams[0], teams[2]], [teams[1], teams[3]], 
-                [teams[0], teams[3]], [teams[1], teams[2]]  
-            ];
-
-            fixtures.forEach((match) => {
-                const row = document.createElement("div");
-                row.className = "group-match-row";
-                row.innerHTML = `
-                    <span style="font-size:0.85rem; width:40%; text-align:right;">${match[0]}</span>
-                    <div class="score-inputs">
-                        <input type="number" min="0" class="score-input score-t1" value="0">
-                        <span class="match-vs">vs</span>
-                        <input type="number" min="0" class="score-input score-t2" value="0">
-                    </div>
-                    <span style="font-size:0.85rem; width:40%; text-align:left;">${match[1]}</span>
-                `;
-                row.setAttribute("data-t1", match[0]);
-                row.setAttribute("data-t2", match[1]);
-                groupCard.appendChild(row);
-            });
-        }
-        container.appendChild(groupCard);
-    });
-}
-
-// গ্রুপ ডাটা প্রসেস করে নকআউট স্লট রেডি করা
-function processGroupStage() {
-    let groupResults = {}; 
-    let thirdPlaceTeams = [];
-
-    if (currentMode === "direct") {
-        const selects = document.querySelectorAll(".group-select");
-        Object.keys(groupsData).forEach(g => { groupResults[g] = { 1: null, 2: null, 3: null, 4: null }; });
-        let isDuplicate = false;
-
-        selects.forEach(select => {
-            const rank = select.value;
-            const group = select.getAttribute("data-group");
-            const team = select.getAttribute("data-team");
-            if (rank) {
-                if (groupResults[group][rank]) isDuplicate = true;
-                groupResults[group][rank] = team;
-            }
-        });
-
-        if (isDuplicate) { alert("একটি গ্রুপে একই র‍্যাংক দুইবার দেওয়া হয়েছে! দয়া করে ঠিক করুন।"); return; }
-
-        for (let g in groupResults) {
-            if (!groupResults[g][1] || !groupResults[g][2] || !groupResults[g][3] || !groupResults[g][4]) {
-                alert(`দয়া করে Group ${g}-এর সব দলের র‍্যাংক সিলেক্ট করুন।`); return;
-            }
-        }
-
-        Object.keys(groupResults).forEach((g, index) => {
-            thirdPlaceTeams.push({ team: groupResults[g][3], group: g, points: 4 + (index % 3), gd: (index % 2 === 0) ? 1 : -1 });
-        });
-
-    } else {
-        // Score Mode ক্যালকুলেশন লজিক
-        let tableData = {}; 
-        Object.keys(groupsData).forEach(g => {
-            groupsData[g].forEach(team => { tableData[team] = { name: team, group: g, points: 0, gd: 0, gf: 0 }; });
-        });
-
-        const matchRows = document.querySelectorAll(".group-match-row");
-        matchRows.forEach(row => {
-            const input1 = row.querySelector(".score-t1");
-            const input2 = row.querySelector(".score-t2");
-            const t1 = row.getAttribute("data-t1");
-            const t2 = row.getAttribute("data-t2");
-            const g1 = parseInt(input1.value) || 0;
-            const g2 = parseInt(input2.value) || 0;
-
-            tableData[t1].gf += g1; tableData[t2].gf += g2;
-            tableData[t1].gd += (g1 - g2); tableData[t2].gd += (g2 - g1);
-
-            if (g1 > g2) { tableData[t1].points += 3; }
-            else if (g2 > g1) { tableData[t2].points += 3; }
-            else { tableData[t1].points += 1; tableData[t2].points += 1; }
-        });
-
-        Object.keys(groupsData).forEach(g => {
-            let groupTeams = groupsData[g].map(t => tableData[t]);
-            groupTeams.sort((a, b) => b.points - a.points || b.gd - a.gd || b.gf - a.gf);
-            
-            groupResults[g] = {
-                1: groupTeams[0].name,
-                2: groupTeams[1].name,
-                3: groupTeams[2].name,
-                4: groupTeams[3].name
-            };
-
-            thirdPlaceTeams.push({ team: groupTeams[2].name, group: g, points: groupTeams[2].points, gd: groupTeams[2].gd });
-        });
-    }
-
-    // সেরা ৮টি ৩য় স্থান অধিকারী দল নির্ধারণ
-    thirdPlaceTeams.sort((a, b) => b.points - a.points || b.gd - a.gd);
-    let best8ThirdPlaces = thirdPlaceTeams.slice(0, 8);
-
-    knockoutState.r32 = [];
-    let get3rd = (idx) => best8ThirdPlaces[idx] ? best8ThirdPlaces[idx].team : `3rd Place Pool #${idx + 1}`;
-
-    // FIFA অফিশিয়াল ৪টি ম্যাচ পজিশনিং লেআউট ফরমেট (Round of 32)
-    const officialR32Layout = [
-        { id: 0, t1: groupResults['A'][2], t2: groupResults['B'][2] },
-        { id: 1, t1: groupResults['E'][1], t2: get3rd(0) },
-        { id: 2, t1: groupResults['F'][1], t2: groupResults['C'][2] },
-        { id: 3, t1: groupResults['C'][1], t2: groupResults['F'][2] },
-        { id: 4, t1: groupResults['I'][1], t2: get3rd(1) },
-        { id: 5, t1: groupResults['E'][2], t2: groupResults['I'][2] },
-        { id: 6, t1: groupResults['A'][1], t2: get3rd(2) },
-        { id: 7, t1: groupResults['L'][1], t2: get3rd(3) },
-        { id: 8, t1: groupResults['D'][1], t2: get3rd(4) },
-        { id: 9, t1: groupResults['G'][1], t2: get3rd(5) },
-        { id: 10, t1: groupResults['K'][2], t2: groupResults['L'][2] },
-        { id: 11, t1: groupResults['H'][1], t2: groupResults['J'][2] },
-        { id: 12, t1: groupResults['B'][1], t2: get3rd(6) },
-        { id: 13, t1: groupResults['J'][1], t2: groupResults['H'][2] },
-        { id: 14, t1: groupResults['K'][1], t2: get3rd(7) },
-        { id: 15, t1: groupResults['D'][2], t2: groupResults['G'][2] }
-    ];
-
-    officialR32Layout.forEach(m => {
-        knockoutState.r32.push({ id: m.id, t1: m.t1, t2: m.t2, winner: null, s1: "", s2: "" });
-    });
-
-    setupBlankRounds();
-
-    const koSection = document.getElementById("knockout-section");
-    if (koSection) {
-        koSection.classList.remove("id-disabled");
-        koSection.scrollIntoView({ behavior: 'smooth' });
-    }
-    renderBracket();
-}
-
-function setupBlankRounds() {
-    knockoutState.r16 = Array(8).fill(null).map((_, i) => ({ id: i, t1: null, t2: null, winner: null, s1: "", s2: "" }));
-    knockoutState.qf = Array(4).fill(null).map((_, i) => ({ id: i, t1: null, t2: null, winner: null, s1: "", s2: "" }));
-    knockoutState.sf = Array(2).fill(null).map((_, i) => ({ id: i, t1: null, t2: null, winner: null, s1: "", s2: "" }));
-    knockoutState.f = [{ id: 0, t1: null, t2: null, winner: null, s1: "", s2: "" }];
-    knockoutState.champion = null;
-}
-
-function renderBracket() {
-    renderKoRound(knockoutState.r32, "r32-slots", "r32");
-    renderKoRound(knockoutState.r16, "r16-slots", "r16");
-    renderKoRound(knockoutState.qf, "qf-slots", "qf");
-    renderKoRound(knockoutState.sf, "sf-slots", "sf");
-    renderKoRound(knockoutState.f, "f-slots", "f");
-    
-    const champDisplay = document.getElementById("champion-name");
-    if(champDisplay) champDisplay.innerText = knockoutState.champion ? knockoutState.champion : "???";
-}
-
-function renderKoRound(matches, containerId, roundKey) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    container.innerHTML = "";
-
-    matches.forEach(match => {
-        const matchBox = document.createElement("div");
-        matchBox.className = "match-box";
-
-        const name1 = match.t1 || "Waiting...";
-        const name2 = match.t2 || "Waiting...";
-
-        // Team 1 Row
-        const div1 = document.createElement("div");
-        div1.className = `ko-team ${match.winner === match.t1 && match.t1 ? 'advanced' : ''} ${match.winner && match.winner !== match.t1 ? 'eliminated' : ''}`;
-        
-        if (currentMode === "direct" || !match.t1 || !match.t2) {
-            div1.innerText = name1;
-            if(match.t1 && match.t2) div1.onclick = () => advanceTeamDirect(roundKey, match.id, match.t1);
-        } else {
-            div1.innerHTML = `<span>${name1}</span><input type="number" min="0" class="score-input" value="${match.s1}" onchange="advanceTeamScore('${roundKey}', ${match.id}, this.value, 't1')">`;
-        }
-
-        // Team 2 Row
-        const div2 = document.createElement("div");
-        div2.className = `ko-team ${match.winner === match.t2 && match.t2 ? 'advanced' : ''} ${match.winner && match.winner !== match.t2 ? 'eliminated' : ''}`;
-        
-        if (currentMode === "direct" || !match.t1 || !match.t2) {
-            div2.innerText = name2;
-            if(match.t1 && match.t2) div2.onclick = () => advanceTeamDirect(roundKey, match.id, match.t2);
-        } else {
-            div2.innerHTML = `<span>${name2}</span><input type="number" min="0" class="score-input" value="${match.s2}" onchange="advanceTeamScore('${roundKey}', ${match.id}, this.value, 't2')">`;
-        }
-
-        matchBox.appendChild(div1);
-        matchBox.appendChild(div2);
-        container.appendChild(matchBox);
-    });
-}
-
-function advanceTeamDirect(currentRound, matchId, selectedTeam) {
-    pushToNextRound(currentRound, matchId, selectedTeam);
-}
-
-function advanceTeamScore(currentRound, matchId, val, teamType) {
-    let match = knockoutState[currentRound][matchId];
-    if (teamType === 't1') match.s1 = val; else match.s2 = val;
-
-    if (match.s1 !== "" && match.s2 !== "" && match.s1 !== undefined && match.s2 !== undefined) {
-        let g1 = parseInt(match.s1) || 0;
-        let g2 = parseInt(match.s2) || 0;
-        let winner = null;
-
-        if (g1 > g2) winner = match.t1;
-        else if (g2 > g1) winner = match.t2;
-        else {
-            let p = prompt(`ম্যাচ ড্র হয়েছে! পেনাল্টি শ্যুটআউটে কে জিতেছে?\n1 চাপুন: ${match.t1} এর জন্য\n2 চাপুন: ${match.t2} এর জন্য`);
-            winner = (p === "2") ? match.t2 : match.t1;
-        }
-        pushToNextRound(currentRound, matchId, winner);
-    }
-}
-
-function pushToNextRound(currentRound, matchId, selectedTeam) {
-    const prevWinner = knockoutState[currentRound][matchId].winner;
-    knockoutState[currentRound][matchId].winner = selectedTeam;
-
-    if (prevWinner && prevWinner !== selectedTeam) resetDownstream(prevWinner);
-
-    if (currentRound === "r32") {
-        const r16Map = {
-            0: { nextId: 0, slot: 't1' }, 2: { nextId: 0, slot: 't2' },  
-            1: { nextId: 1, slot: 't1' }, 4: { nextId: 1, slot: 't2' },  
-            3: { nextId: 2, slot: 't1' }, 5: { nextId: 2, slot: 't2' },  
-            6: { nextId: 3, slot: 't1' }, 7: { nextId: 3, slot: 't2' },  
-            10: { nextId: 4, slot: 't1' }, 11: { nextId: 4, slot: 't2' }, 
-            8: { nextId: 5, slot: 't1' }, 9: { nextId: 5, slot: 't2' },  
-            13: { nextId: 6, slot: 't1' }, 15: { nextId: 6, slot: 't2' }, 
-            12: { nextId: 7, slot: 't1' }, 14: { nextId: 7, slot: 't2' }  
-        };
-        let target = r16Map[matchId];
-        if(target) knockoutState.r16[target.nextId][target.slot] = selectedTeam;
-
-    } else if (currentRound === "r16") {
-        let nextMatchId = Math.floor(matchId / 2);
-        if (matchId % 2 === 0) knockoutState.qf[nextMatchId].t1 = selectedTeam; 
-        else knockoutState.qf[nextMatchId].t2 = selectedTeam;
-
-    } else if (currentRound === "qf") {
-        let nextMatchId = Math.floor(matchId / 2);
-        if (matchId % 2 === 0) knockoutState.sf[nextMatchId].t1 = selectedTeam; 
-        else knockoutState.sf[nextMatchId].t2 = selectedTeam;
-
-    } else if (currentRound === "sf") {
-        if (matchId === 0) knockoutState.f[0].t1 = selectedTeam; 
-        else knockoutState.f[0].t2 = selectedTeam;
-
-    } else if (currentRound === "f") {
-        knockoutState.champion = selectedTeam;
-    }
-    renderBracket();
-}
-
-function resetDownstream(teamName) {
-    const rounds = ["r16", "qf", "sf", "f"];
-    rounds.forEach(r => {
-        knockoutState[r].forEach(m => {
-            if(m.t1 === teamName) { m.t1 = null; m.winner = null; m.s1 = ""; }
-            if(m.t2 === teamName) { m.t2 = null; m.winner = null; m.s2 = ""; }
-        });
-    });
-    if(knockoutState.champion === teamName) knockoutState.champion = null;
-}
-
-function resetAll() {
-    knockoutState = { r32: [], r16: [], qf: [], sf: [], f: [], champion: null };
-    const koSection = document.getElementById("knockout-section");
-    if(koSection) koSection.classList.add("id-disabled");
-    renderGroupStage();
-    renderBracket();
+    .round-col { min-width: 240px; min-height: auto; }
+    .matches-slots { gap: 15px; justify-content: flex-start; }
+    .match-box { margin-bottom: 10px; }
 }
