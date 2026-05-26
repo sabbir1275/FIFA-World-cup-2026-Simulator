@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FIFA World Cup 2026 Simulator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <h1>🏆 FIFA WORLD CUP 2026 SIMULATOR 🏆</h1>
+        <p>Choose your simulation mode, predict the matches, and crown the Champion!</p>
+        
+        <!-- Simulation Mode Selector -->
+        <div class="mode-selector">
+            <label class="mode-label">
+                <input type="radio" name="simMode" value="direct" checked> 🏎️ Direct Rank Mode
+            </label>
+            <label class="mode-label">
+                <input type="radio" name="simMode" value="score"> ⚽ Match Score Mode
+            </label>
+        </div>
+
+        <button id="reset-btn">Reset Simulation</button>
+    </header>
+
+    <main class="main-wrapper">
+        <!-- STEP 1: GROUP STAGE -->
+        <section class="stage-section">
+            <h2>Step 1: Group Stage (48 Teams)</h2>
+            <div class="groups-grid" id="groups-container"></div>
+            <div class="center-btn-container">
+                <button id="generate-ko-btn">Simulate Knockouts</button>
+            </div>
+        </section>
+
+        <hr>
+
+        <!-- STEP 2: KNOCKOUT BRACKET -->
+        <section class="stage-section id-disabled" id="knockout-section">
+            <h2>Step 2: Knockout Stage Bracket</h2>
+            <div class="tournament-bracket">
+                <div class="round-col"><h3>Round of 32</h3><div class="matches-slots" id="r32-slots"></div></div>
+                <div class="round-col"><h3>Round of 16</h3><div class="matches-slots" id="r16-slots"></div></div>
+                <div class="round-col"><h3>Quarter-Finals</h3><div class="matches-slots" id="qf-slots"></div></div>
+                <div class="round-col"><h3>Semi-Finals</h3><div class="matches-slots" id="sf-slots"></div></div>
+                <div class="round-col"><h3>Final</h3><div class="matches-slots" id="f-slots"></div></div>
+                <div class="round-col">
+                    <h3>Champion</h3>
+                    <div class="champion-box">
+                        <div class="crown">👑</div>
+                        <div id="champion-name">???</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
