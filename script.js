@@ -5,7 +5,7 @@ const groupsData = {
     C: ["🇧🇷 Brazil", "🇲🇦 Morocco", "🇭🇹 Haiti", "🏴󠁧󠁢󠁳󠁣󠁴󠁿 Scotland"],
     D: ["🇺🇸 United States", "🇵🇾 Paraguay", "🇦🇺 Australia", "🇹🇷 Turkey"],
     E: ["🇩🇪 Germany", "🇨🇼 Curaçao", "🇨🇮 Ivory Coast", "🇪🇨 Ecuador"],
-    F: ["🇳🇱 Netherlands", "🇯🇵 Japan", "🇸🇪 Sweden", "🇹🇳 Tunisia"],
+    F: ["🇳🇱 Netherlands", "🇯ﭘ Japan", "🇸🇪 Sweden", "🇹🇳 Tunisia"],
     G: ["🇧🇪 Belgium", "🇪🇬 Egypt", "🇮🇷 Iran", "🇳🇿 New Zealand"],
     H: ["🇪🇸 Spain", "🇨🇻 Cape Verde", "🇸🇦 Saudi Arabia", "🇺🇾 Uruguay"],
     I: ["🇫🇷 France", "🇸🇳 Senegal", "🇮🇶 Iraq", "🇳🇴 Norway"],
@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("reset-btn").addEventListener("click", resetAll);
 });
 
-// মোড অনুযায়ী গ্রুপ স্টেজ রেন্ডার করার ফাংশন
+// মোড অনুযায়ী গ্রুপ স্টেজ রেন্ডার করার ফাংশন
 function renderGroupStage() {
     const container = document.getElementById("groups-container");
     container.innerHTML = "";
@@ -116,14 +116,14 @@ function processGroupStage() {
             }
         }
 
-        // ৩য় স্থানগুলোর কাল্পনিক পয়েন্ট জেনারেশন
+        // ৩য় স্থানগুলোর কাল্পনিক পয়েন্ট জেনারেশন (ডাইরেক্ট মোডের জন্য সর্টিং লজিক সচল রাখতে)
         Object.keys(groupResults).forEach((g, index) => {
-            thirdPlaceTeams.push({ team: groupResults[g][3], points: 4 + (index % 3), gd: (index % 2 === 0) ? 1 : -1 });
+            thirdPlaceTeams.push({ team: groupResults[g][3], group: g, points: 4 + (index % 3), gd: (index % 2 === 0) ? 1 : -1 });
         });
 
     } else {
         // --- SCORE MODE LOGIC ---
-        let tableData = {}; // { "Mexico": { points: 0, gd: 0, gf: 0 } }
+        let tableData = {}; 
         Object.keys(groupsData).forEach(g => {
             groupsData[g].forEach(team => { tableData[team] = { name: team, group: g, points: 0, gd: 0, gf: 0 }; });
         });
@@ -145,7 +145,7 @@ function processGroupStage() {
             else { tableData[t1].points += 1; tableData[t2].points += 1; }
         });
 
-        // গ্রুপ অনুযায়ী টিম সর্টিং (ফিফা অফিশিয়াল রুলস: Points -> GD -> Goals Scored)
+        // গ্রুপ সর্টিং (Points -> GD -> GF)
         Object.keys(groupsData).forEach(g => {
             let groupTeams = groupsData[g].map(t => tableData[t]);
             groupTeams.sort((a, b) => b.points - a.points || b.gd - a.gd || b.gf - a.gf);
@@ -157,27 +157,43 @@ function processGroupStage() {
                 4: groupTeams[3].name
             };
 
-            thirdPlaceTeams.push({ team: groupTeams[2].name, points: groupTeams[2].points, gd: groupTeams[2].gd });
+            thirdPlaceTeams.push({ team: groupTeams[2].name, group: g, points: groupTeams[2].points, gd: groupTeams[2].gd });
         });
     }
 
-    // টপ ৮টি ৩য় স্থানের দল সিলেক্ট করা
+    // টপ ৮টি ৩য় স্থানের দল সিলেক্ট করা
     thirdPlaceTeams.sort((a, b) => b.points - a.points || b.gd - a.gd);
-    let best8ThirdPlaces = thirdPlaceTeams.slice(0, 8).map(t => t.team);
+    let best8ThirdPlaces = thirdPlaceTeams.slice(0, 8);
 
-    // ২৪ (১ম ও ২য়) + ৮ (সেরা ৩য়) = ৩২টি দল রেডি
-    let final32Teams = [];
-    Object.keys(groupResults).forEach(g => {
-        final32Teams.push(groupResults[g][1]);
-        final32Teams.push(groupResults[g][2]);
-    });
-    final32Teams = final32Teams.concat(best8ThirdPlaces);
-
-    // রাউন্ড অফ ৩২ ফিক্সচার ম্যাপিং
+    // রাউন্ড অফ ৩২ ফিক্সচার ম্যাপিং (অফিসিয়াল ২৪টি নির্দিষ্ট ১ম/২য় স্লট + ৮টি ৩য় দলের পুল)
     knockoutState.r32 = [];
-    for (let i = 0; i < 16; i++) {
-        knockoutState.r32.push({ id: i, t1: final32Teams[i], t2: final32Teams[31 - i], winner: null, s1: "", s2: "" });
-    }
+    
+    // হেল্পার ফাংশন ৩য় দল খুঁজে বের করার জন্য
+    let get3rd = (idx) => best8ThirdPlaces[idx] ? best8ThirdPlaces[idx].team : `3rd Place Pool #${idx + 1}`;
+
+    // FIFA World Cup 2026 Official Brackets (Match 73 to Match 88)
+    const officialR32Layout = [
+        { id: 0, matchNo: 73, t1: groupResults['A'][2], t2: groupResults['B'][2] },
+        { id: 1, matchNo: 74, t1: groupResults['E'][1], t2: get3rd(0) },
+        { id: 2, matchNo: 75, t1: groupResults['F'][1], t2: groupResults['C'][2] },
+        { id: 3, matchNo: 76, t1: groupResults['C'][1], t2: groupResults['F'][2] },
+        { id: 4, matchNo: 77, t1: groupResults['I'][1], t2: get3rd(1) },
+        { id: 5, matchNo: 78, t1: groupResults['E'][2], t2: groupResults['I'][2] },
+        { id: 6, matchNo: 79, t1: groupResults['A'][1], t2: get3rd(2) },
+        { id: 7, matchNo: 80, t1: groupResults['L'][1], t2: get3rd(3) },
+        { id: 8, matchNo: 81, t1: groupResults['D'][1], t2: get3rd(4) },
+        { id: 9, matchNo: 82, t1: groupResults['G'][1], t2: get3rd(5) },
+        { id: 10, matchNo: 83, t1: groupResults['K'][2], t2: groupResults['L'][2] },
+        { id: 11, matchNo: 84, t1: groupResults['H'][1], t2: groupResults['J'][2] },
+        { id: 12, matchNo: 85, t1: groupResults['B'][1], t2: get3rd(6) },
+        { id: 13, matchNo: 86, t1: groupResults['J'][1], t2: groupResults['H'][2] },
+        { id: 14, matchNo: 87, t1: groupResults['K'][1], t2: get3rd(7) },
+        { id: 15, matchNo: 88, t1: groupResults['D'][2], t2: groupResults['G'][2] }
+    ];
+
+    officialR32Layout.forEach(m => {
+        knockoutState.r32.push({ id: m.id, matchNo: m.matchNo, t1: m.t1, t2: m.t2, winner: null, s1: "", s2: "" });
+    });
 
     // ক্লিন নকআউট স্টেট সেটআপ
     setupBlankRounds();
@@ -250,7 +266,7 @@ function advanceTeamDirect(currentRound, matchId, selectedTeam) {
     pushToNextRound(currentRound, matchId, selectedTeam);
 }
 
-// ২. স্কোর মোডে গোল অনুযায়ী টিম এডভান্স করা (টাই হলে পেনাল্টি শুটআউট প্রোম্পট)
+// ২. স্কোর মোডে গোল অনুযায়ী টিম এডভান্স করা (টাই হলে পেনাল্টি শুটআউট প্রোম্পট)
 function advanceTeamScore(currentRound, matchId, val, teamType) {
     let match = knockoutState[currentRound][matchId];
     if (teamType === 't1') match.s1 = val; else match.s2 = val;
@@ -263,7 +279,6 @@ function advanceTeamScore(currentRound, matchId, val, teamType) {
         if (g1 > g2) winner = match.t1;
         else if (g2 > g1) winner = match.t2;
         else {
-            // গোল ড্র হলে পেনাল্টি শুটআউট ডিসিশন
             let p = prompt(`Match Tied! Enter Penalty Shootout Winner:\n1 for ${match.t1}\n2 for ${match.t2}`);
             winner = (p === "2") ? match.t2 : match.t1;
         }
@@ -271,24 +286,51 @@ function advanceTeamScore(currentRound, matchId, val, teamType) {
     }
 }
 
-// পরের রাউন্ডে ডেটা পুশ করার কোর মেকানিজম
+// পরের রাউন্ডে ডেটা পুশ করার কোর মেকানিজম (FIFA 2026 Official Tree Path Mapping)
 function pushToNextRound(currentRound, matchId, selectedTeam) {
     const prevWinner = knockoutState[currentRound][matchId].winner;
     knockoutState[currentRound][matchId].winner = selectedTeam;
 
     if (prevWinner && prevWinner !== selectedTeam) resetDownstream(prevWinner);
 
-    const nextMatchId = Math.floor(matchId / 2);
-    const isTeam1 = matchId % 2 === 0;
-
     if (currentRound === "r32") {
-        if (isTeam1) knockoutState.r16[nextMatchId].t1 = selectedTeam; else knockoutState.r16[nextMatchId].t2 = selectedTeam;
+        // Official R32 -> R16 Path Mapping
+        const r16Map = {
+            0: { nextId: 0, slot: 't1' },  // Match 73 Winner -> R16 Match 1 Team 1
+            2: { nextId: 0, slot: 't2' },  // Match 75 Winner -> R16 Match 1 Team 2
+            1: { nextId: 1, slot: 't1' },  // Match 74 Winner -> R16 Match 2 Team 1
+            4: { nextId: 1, slot: 't2' },  // Match 77 Winner -> R16 Match 2 Team 2
+            3: { nextId: 2, slot: 't1' },  // Match 76 Winner -> R16 Match 3 Team 1
+            5: { nextId: 2, slot: 't2' },  // Match 78 Winner -> R16 Match 3 Team 2
+            6: { nextId: 3, slot: 't1' },  // Match 79 Winner -> R16 Match 4 Team 1
+            7: { nextId: 3, slot: 't2' },  // Match 80 Winner -> R16 Match 4 Team 2
+            10: { nextId: 4, slot: 't1' }, // Match 83 Winner -> R16 Match 5 Team 1
+            11: { nextId: 4, slot: 't2' }, // Match 84 Winner -> R16 Match 5 Team 2
+            8: { nextId: 5, slot: 't1' },  // Match 81 Winner -> R16 Match 6 Team 1
+            9: { nextId: 5, slot: 't2' },  // Match 82 Winner -> R16 Match 6 Team 2
+            13: { nextId: 6, slot: 't1' }, // Match 86 Winner -> R16 Match 7 Team 1
+            15: { nextId: 6, slot: 't2' }, // Match 88 Winner -> R16 Match 7 Team 2
+            12: { nextId: 7, slot: 't1' }, // Match 85 Winner -> R16 Match 8 Team 1
+            14: { nextId: 7, slot: 't2' }  // Match 87 Winner -> R16 Match 8 Team 2
+        };
+        let target = r16Map[matchId];
+        knockoutState.r16[target.nextId][target.slot] = selectedTeam;
+
     } else if (currentRound === "r16") {
-        if (isTeam1) knockoutState.qf[nextMatchId].t1 = selectedTeam; else knockoutState.qf[nextMatchId].t2 = selectedTeam;
+        // Standard Bracket Logic works from here on
+        let nextMatchId = Math.floor(matchId / 2);
+        if (matchId % 2 === 0) knockoutState.qf[nextMatchId].t1 = selectedTeam; 
+        else knockoutState.qf[nextMatchId].t2 = selectedTeam;
+
     } else if (currentRound === "qf") {
-        if (isTeam1) knockoutState.sf[nextMatchId].t1 = selectedTeam; else knockoutState.sf[nextMatchId].t2 = selectedTeam;
+        let nextMatchId = Math.floor(matchId / 2);
+        if (matchId % 2 === 0) knockoutState.sf[nextMatchId].t1 = selectedTeam; 
+        else knockoutState.sf[nextMatchId].t2 = selectedTeam;
+
     } else if (currentRound === "sf") {
-        if (isTeam1) knockoutState.f[0].t1 = selectedTeam; else knockoutState.f[0].t2 = selectedTeam;
+        if (matchId === 0) knockoutState.f[0].t1 = selectedTeam; 
+        else knockoutState.f[0].t2 = selectedTeam;
+
     } else if (currentRound === "f") {
         knockoutState.champion = selectedTeam;
     }
